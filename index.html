@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Patient Follow-up & Satisfaction Survey</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Noto+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f2f6f7;--surf:#fff;--ink:#12303a;--mut:#5d7680;--line:#d9e3e6;--acc:#1f7a8c;--accx:#fff;--ok:#1b7f5c;--bad:#b83b4b;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1b20;--surf:#15272e;--ink:#e6f0f2;--mut:#90a9b2;--line:#27404a;--acc:#4fb8cc;--accx:#0e1b20;--ok:#4cc79a;--bad:#ef7685}}
+:root[data-theme="dark"]{--bg:#0e1b20;--surf:#15272e;--ink:#e6f0f2;--mut:#90a9b2;--line:#27404a;--acc:#4fb8cc;--accx:#0e1b20;--ok:#4cc79a;--bad:#ef7685}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Figtree,"Noto Sans Arabic",system-ui,sans-serif;line-height:1.5}
+.wrap{max-width:760px;margin:0 auto;padding:20px 16px 48px}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+h1{font-size:1.5rem;margin:0 0 4px}.mut{color:var(--mut);font-size:.9rem}
+.tabs{display:flex;gap:6px;margin:14px 0}.tabs button,.btn{font:inherit;padding:8px 16px;border:1.5px solid var(--line);background:var(--surf);color:var(--ink);border-radius:20px;cursor:pointer}
+.tabs button[aria-pressed=true],.btn.p{background:var(--acc);color:var(--accx);border-color:var(--acc);font-weight:600}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+fieldset{background:var(--surf);border:1px solid var(--line);border-radius:6px;padding:14px 16px;margin:0 0 14px;min-width:0}
+legend{font-weight:700;padding:0 6px}
+.q{margin:0 0 16px}.q>label,.q>.ql{display:block;font-weight:600;margin-bottom:6px}
+.scale{display:flex;flex-wrap:wrap;gap:6px}.scale label{position:relative}
+.scale input{position:absolute;opacity:0}.scale span{display:inline-block;min-width:42px;text-align:center;padding:8px 0;border:1.5px solid var(--line);border-radius:6px;cursor:pointer}
+.scale input:checked+span{background:var(--acc);color:var(--accx);border-color:var(--acc);font-weight:700}
+.scale input:focus-visible+span{outline:3px solid var(--acc);outline-offset:2px}
+.ends{display:flex;justify-content:space-between;font-size:.78rem;color:var(--mut);margin-top:3px}
+select,textarea,input[type=text]{width:100%;font:inherit;padding:9px;border:1.5px solid var(--line);border-radius:6px;background:var(--surf);color:var(--ink)}
+.err{color:var(--bad);font-size:.88rem;min-height:1.3em}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.k{background:var(--surf);border:1px solid var(--line);border-radius:6px;padding:10px 12px}.k b{display:block;font-size:1.6rem}
+.scroll{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:.88rem}th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:end;white-space:nowrap}th:first-child,td:first-child{text-align:start}
+.cm{border-bottom:1px solid var(--line);padding:8px 0;font-size:.9rem}[hidden]{display:none!important}
+</style></head><body><div class="wrap">
+<div class="top"><div><h1 id="h1"></h1><div class="mut" id="sub"></div></div><button class="btn" id="lang" aria-label="Change language / تغيير اللغة"></button></div>
+<div class="tabs" id="tabs"><button data-t="s"></button><button data-t="r"></button></div>
+<div id="survey"><form id="f" onsubmit="return false"></form></div>
+<div id="thanks" hidden><fieldset><legend id="tl"></legend><p id="tp"></p><button class="btn" id="again"></button></fieldset></div>
+<div id="res" hidden></div>
+</div>
+<script>
+const L={
+en:{lang:"العربية",title:"Patient follow-up & satisfaction survey",sub:"Takes about 3 minutes. Your answers help us improve care.",tabS:"Survey",tabR:"Team results",
+ g1:"About your visit",svcQ:"Which service did you attend?",sel:"Select…",vtQ:"Type of visit",thQ:"Therapist name (optional)",
+ g2:"Your experience",lo5:"1 = strongly disagree",hi5:"5 = strongly agree",npsQ:"How likely are you to recommend us to family or friends?",npsLo:"0 = not at all likely",npsHi:"10 = extremely likely",
+ g3:"Your progress",painQ:"Your pain right now",painLo:"0 = no pain",painHi:"10 = worst pain",funcQ:"How well can you do your daily activities now?",funcLo:"0 = not at all",funcHi:"10 = without difficulty",
+ goalQ:"How much of your treatment goal have you achieved?",hepQ:"How often do you do your home exercises or self-care?",
+ g4:"Anything else?",cmQ:"What went well, and what could we do better?",ctQ:"May our team contact you about your answers?",no:"No",yes:"Yes",
+ err:"Please answer all rating questions, and choose your service and visit type.",send:"Send my answers",thanks:"Thank you",sent:"Your answers have been sent.",again:"Start another survey",
+ resp:"Responses",avgSat:"Overall satisfaction (1–5)",nps:"Net promoter score",goalMet:"Goal mostly / fully met",avgPain:"Average pain (0–10)",avgFunc:"Average function (0–10)",
+ by:"By service line",cSvc:"Service",cN:"n",cSat:"Satisfaction",cPain:"Pain",cFunc:"Function",cGoal:"Goal met",cms:"Comments",noCm:"No comments yet.",dl:"Download responses (CSV)",dlNA:"Download is not available here.",dlX:"Download cancelled.",
+ svc:{ortho:"Outpatient ortho",sports:"Sports injuries",lymph:"Lymphedema",lip:"Lipedema",pelvic:"Pelvic floor"},
+ vt:["Early in treatment","Mid-treatment","Discharge","Follow-up after discharge"],goal:["Not at all","A little","Mostly","Fully achieved"],hep:["Never","Sometimes","Mostly","Always"],
+ sat:{book:"Booking an appointment was easy",wait:"I was seen on time",listen:"My therapist listened to me",explain:"My treatment and exercises were clearly explained",priv:"The clinic felt clean, comfortable and private",overall:"Overall, I am satisfied with my care"},
+ spec:{ortho:["How much does pain or stiffness limit your work or daily activity now?","0 = not at all","10 = completely"],sports:["How close are you to your usual level of sport?","0 = not at all","10 = fully back"],lymph:["How much swelling or heaviness do you feel now?","0 = none","10 = severe"],lip:["How much pain or tenderness do you feel in your legs or arms now?","0 = none","10 = severe"],pelvic:["How much do your pelvic floor symptoms bother you now?","0 = not at all","10 = extremely"]}},
+ar:{lang:"English",title:"استبيان متابعة المرضى ورضاهم",sub:"يستغرق حوالي 3 دقائق. إجاباتك تساعدنا على تحسين الرعاية.",tabS:"الاستبيان",tabR:"نتائج الفريق",
+ g1:"عن زيارتك",svcQ:"ما الخدمة التي حضرتها؟",sel:"اختر…",vtQ:"نوع الزيارة",thQ:"اسم الأخصائي (اختياري)",
+ g2:"تجربتك",lo5:"1 = لا أوافق إطلاقاً",hi5:"5 = أوافق بشدة",npsQ:"ما مدى احتمال أن توصي بنا لأسرتك أو أصدقائك؟",npsLo:"0 = غير محتمل إطلاقاً",npsHi:"10 = محتمل جداً",
+ g3:"تقدمك",painQ:"ألمك الآن",painLo:"0 = لا ألم",painHi:"10 = أسوأ ألم",funcQ:"ما مدى قدرتك على أداء أنشطتك اليومية الآن؟",funcLo:"0 = لا أستطيع",funcHi:"10 = دون صعوبة",
+ goalQ:"ما مقدار ما حققته من هدف علاجك؟",hepQ:"كم مرة تؤدي تمارينك المنزلية أو الرعاية الذاتية؟",
+ g4:"هل من شيء آخر؟",cmQ:"ما الذي سار بشكل جيد، وما الذي يمكننا تحسينه؟",ctQ:"هل يمكن لفريقنا التواصل معك بخصوص إجاباتك؟",no:"لا",yes:"نعم",
+ err:"يرجى الإجابة عن جميع أسئلة التقييم واختيار الخدمة ونوع الزيارة.",send:"إرسال إجاباتي",thanks:"شكراً لك",sent:"تم إرسال إجاباتك.",again:"ابدأ استبياناً جديداً",
+ resp:"عدد الردود",avgSat:"الرضا العام (1–5)",nps:"صافي نقاط التوصية (NPS)",goalMet:"تحقق الهدف معظمه أو كاملاً",avgPain:"متوسط الألم (0–10)",avgFunc:"متوسط الأداء الوظيفي (0–10)",
+ by:"حسب الخدمة",cSvc:"الخدمة",cN:"العدد",cSat:"الرضا",cPain:"الألم",cFunc:"الأداء",cGoal:"تحقق الهدف",cms:"التعليقات",noCm:"لا توجد تعليقات بعد.",dl:"تنزيل الردود (CSV)",dlNA:"التنزيل غير متاح هنا.",dlX:"تم إلغاء التنزيل.",
+ svc:{ortho:"العظام (العيادات الخارجية)",sports:"إصابات الملاعب",lymph:"الوذمة اللمفية",lip:"الوذمة الدهنية (الليبيديما)",pelvic:"قاع الحوض"},
+ vt:["في بداية العلاج","في منتصف العلاج","عند انتهاء العلاج","متابعة بعد انتهاء العلاج"],goal:["لم أحقق شيئاً","قليلاً","معظمه","تحقق بالكامل"],hep:["أبداً","أحياناً","غالباً","دائماً"],
+ sat:{book:"كان حجز الموعد سهلاً",wait:"تمت رؤيتي في الموعد المحدد",listen:"استمع إليّ الأخصائي",explain:"تم شرح العلاج والتمارين لي بوضوح",priv:"كانت العيادة نظيفة ومريحة وتوفر الخصوصية",overall:"بشكل عام، أنا راضٍ عن الرعاية التي تلقيتها"},
+ spec:{ortho:["إلى أي مدى يحد الألم أو التيبّس من عملك أو نشاطك اليومي الآن؟","0 = إطلاقاً","10 = تماماً"],sports:["ما مدى قربك من مستواك المعتاد في الرياضة؟","0 = لست قريباً","10 = عدت بالكامل"],lymph:["ما مقدار التورم أو الثقل الذي تشعر به الآن؟","0 = لا شيء","10 = شديد"],lip:["ما مقدار الألم أو الحساسية في ساقيك أو ذراعيك الآن؟","0 = لا شيء","10 = شديد"],pelvic:["إلى أي مدى تزعجك أعراض قاع الحوض الآن؟","0 = لا تزعجني","10 = بشدة"]}}};
+const VT_EN=L.en.vt,SATK=["book","wait","listen","explain","priv","overall"];
+const $=id=>document.getElementById(id);
+let lang="en",view="s",rows=[],db=null;
+try{lang=localStorage.getItem("lang")||(navigator.language||"").slice(0,2)==="ar"?"ar":"en";const s=localStorage.getItem("lang");if(s)lang=s}catch(e){}
+const T=()=>L[lang];
+function scale(name,from,to,lo,hi){let h='<div class="scale" role="radiogroup">';for(let i=from;i<=to;i++)h+=`<label><input type="radio" name="${name}" value="${i}"><span>${i}</span></label>`;h+='</div>';if(lo)h+=`<div class="ends"><span>${lo}</span><span>${hi}</span></div>`;return h}
+function opts(name,arr){return '<div class="scale">'+arr.map((a,i)=>`<label><input type="radio" name="${name}" value="${i}"><span style="padding:8px 12px">${a}</span></label>`).join("")+'</div>'}
+const v=n=>{const e=document.querySelector(`#f input[name=${n}]:checked`);return e?+e.value:null};
+function snap(){const o={r:{}};document.querySelectorAll("#f input[type=radio]:checked").forEach(e=>o.r[e.name]=e.value);["svc","vt","th","cm"].forEach(i=>{const e=$(i);if(e)o[i]=e.value});return o}
+function buildForm(o){const t=T();
+ $("f").innerHTML=`<fieldset><legend>${t.g1}</legend>
+<div class="q"><label for="svc">${t.svcQ}</label><select id="svc"><option value="">${t.sel}</option>${Object.keys(t.svc).map(k=>`<option value="${k}">${t.svc[k]}</option>`).join("")}</select></div>
+<div class="q"><label for="vt">${t.vtQ}</label><select id="vt"><option value="">${t.sel}</option>${t.vt.map((x,i)=>`<option value="${i}">${x}</option>`).join("")}</select></div>
+<div class="q"><label for="th">${t.thQ}</label><input type="text" id="th" autocomplete="off"></div></fieldset>
+<fieldset><legend>${t.g2}</legend>${SATK.map(k=>`<div class="q"><div class="ql">${t.sat[k]}</div>${scale(k,1,5,t.lo5,t.hi5)}</div>`).join("")}
+<div class="q"><div class="ql">${t.npsQ}</div>${scale("nps",0,10,t.npsLo,t.npsHi)}</div></fieldset>
+<fieldset><legend>${t.g3}</legend>
+<div class="q"><div class="ql">${t.painQ}</div>${scale("pain",0,10,t.painLo,t.painHi)}</div>
+<div class="q"><div class="ql">${t.funcQ}</div>${scale("func",0,10,t.funcLo,t.funcHi)}</div>
+<div class="q"><div class="ql">${t.goalQ}</div>${opts("goal",t.goal)}</div>
+<div class="q"><div class="ql">${t.hepQ}</div>${opts("hep",t.hep)}</div>
+<div class="q" id="spec" hidden></div></fieldset>
+<fieldset><legend>${t.g4}</legend><div class="q"><label for="cm">${t.cmQ}</label><textarea id="cm" rows="3"></textarea></div>
+<div class="q"><div class="ql">${t.ctQ}</div>${opts("contact",[t.no,t.yes])}</div></fieldset>
+<div class="err" id="err" role="alert"></div><button class="btn p" id="go">${t.send}</button>`;
+ $("svc").onchange=specUpd;$("go").onclick=submit;
+ if(o){["svc","vt","th","cm"].forEach(i=>{if(o[i]!=null)$(i).value=o[i]});specUpd();
+  for(const n in o.r){const e=document.querySelector(`#f input[name=${n}][value="${o.r[n]}"]`);if(e)e.checked=true}}}
+function specUpd(){const s=T().spec[$("svc").value],d=$("spec");if(!s){d.hidden=true;d.innerHTML="";return}
+ const keep=v("spec");d.hidden=false;d.innerHTML=`<div class="ql">${s[0]}</div>${scale("spec",0,10,s[1],s[2])}`;
+ if(keep!=null)document.querySelector(`#f input[name=spec][value="${keep}"]`).checked=true}
+function csv(){const H=["date","service","visit","therapist","book","wait","listen","explain","priv","overall","nps","pain","func","goal","hep","spec","contact","comment"];
+ const q=x=>'"'+String(x??"").replace(/"/g,'""')+'"';
+ return "\ufeff"+[H.join(",")].concat(rows.map(r=>H.map(h=>q(h==="visit"&&typeof r.visit==="number"?VT_EN[r.visit]:r[h])).join(","))).join("\n")}
+async function submit(){
+ const r={date:new Date().toISOString().slice(0,10),service:$("svc").value,visit:$("vt").value===""?"":+$("vt").value,therapist:$("th").value.trim(),comment:$("cm").value.trim(),lang};
+ SATK.forEach(k=>r[k]=v(k));["nps","pain","func","goal","hep","contact"].forEach(k=>r[k]=v(k));r.spec=v("spec");
+ const miss=!r.service||r.visit===""||SATK.some(k=>r[k]==null)||r.nps==null||r.pain==null||r.func==null||r.goal==null||r.hep==null||(r.spec==null&&T().spec[r.service]);
+ if(miss){$("err").textContent=T().err;return}
+ rows.push(r);
+ try{if(db)await db.collection("responses").doc(Date.now()+"-"+Math.random().toString(36).slice(2,7)).set(r)}catch(e){}
+ setView("t")}
+const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null,f1=x=>x==null?"–":x.toFixed(1);
+function nps(a){return a.length?Math.round((a.filter(x=>x>=9).length-a.filter(x=>x<=6).length)/a.length*100):null}
+function draw(){const t=T(),g=k=>rows.map(r=>r[k]).filter(x=>x!=null);
+ const goal=rows.length?Math.round(rows.filter(r=>r.goal>=2).length/rows.length*100)+"%":"–";
+ let h=`<div class="grid"><div class="k"><span class="mut">${t.resp}</span><b>${rows.length}</b></div><div class="k"><span class="mut">${t.avgSat}</span><b>${f1(avg(g("overall")))}</b></div><div class="k"><span class="mut">${t.nps}</span><b>${nps(g("nps"))??"–"}</b></div><div class="k"><span class="mut">${t.goalMet}</span><b>${goal}</b></div><div class="k"><span class="mut">${t.avgPain}</span><b>${f1(avg(g("pain")))}</b></div><div class="k"><span class="mut">${t.avgFunc}</span><b>${f1(avg(g("func")))}</b></div></div>
+ <fieldset><legend>${t.by}</legend><div class="scroll"><table><tr><th>${t.cSvc}</th><th>${t.cN}</th><th>${t.cSat}</th><th>NPS</th><th>${t.cPain}</th><th>${t.cFunc}</th><th>${t.cGoal}</th></tr>`;
+ for(const k in t.svc){const s=rows.filter(r=>r.service===k);if(!s.length)continue;const m=x=>s.map(r=>r[x]);
+  h+=`<tr><td>${t.svc[k]}</td><td>${s.length}</td><td>${f1(avg(m("overall")))}</td><td>${nps(m("nps"))}</td><td>${f1(avg(m("pain")))}</td><td>${f1(avg(m("func")))}</td><td>${Math.round(s.filter(r=>r.goal>=2).length/s.length*100)}%</td></tr>`}
+ h+=`</table></div></fieldset><fieldset><legend>${t.cms}</legend><div id="cms"></div></fieldset><button class="btn p" id="dl">${t.dl}</button> <span class="mut" id="dlm"></span>`;
+ $("res").innerHTML=h;const c=$("cms"),cs=rows.filter(r=>r.comment);
+ if(!cs.length)c.innerHTML=`<div class="mut">${t.noCm}</div>`;
+ cs.slice(-20).reverse().forEach(r=>{const d=document.createElement("div");d.className="cm";d.textContent=(t.svc[r.service]||"")+" · "+r.date+": "+r.comment;c.appendChild(d)});
+ $("dl").onclick=async()=>{try{const d=await claude.use("downloads");if(!d){$("dlm").textContent=t.dlNA;return}await d.save({filename:"patient-survey-responses.csv",data:csv()})}catch(e){$("dlm").textContent=t.dlX}}}
+function setView(x){view=x;$("survey").hidden=x!=="s";$("thanks").hidden=x!=="t";$("res").hidden=x!=="r";
+ document.querySelectorAll("#tabs button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.t===(x==="r"?"r":"s")));
+ if(x==="r")draw();if(x==="t")scrollTo(0,0)}
+function applyLang(keep){const t=T();document.documentElement.lang=lang;document.documentElement.dir=lang==="ar"?"rtl":"ltr";
+ document.title=t.title;$("h1").textContent=t.title;$("sub").textContent=t.sub;$("lang").textContent=t.lang;
+ const tb=document.querySelectorAll("#tabs button");tb[0].textContent=t.tabS;tb[1].textContent=t.tabR;
+ $("tl").textContent=t.thanks;$("tp").textContent=t.sent;$("again").textContent=t.again;
+ buildForm(keep?snap():null);if(view==="r")draw()}
+$("lang").onclick=()=>{const o=snap();lang=lang==="en"?"ar":"en";try{localStorage.setItem("lang",lang)}catch(e){}
+ document.documentElement.lang=lang;document.documentElement.dir=lang==="ar"?"rtl":"ltr";const t=T();
+ document.title=t.title;$("h1").textContent=t.title;$("sub").textContent=t.sub;$("lang").textContent=t.lang;
+ const tb=document.querySelectorAll("#tabs button");tb[0].textContent=t.tabS;tb[1].textContent=t.tabR;
+ $("tl").textContent=t.thanks;$("tp").textContent=t.sent;$("again").textContent=t.again;buildForm(o);if(view==="r")draw()};
+document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>setView(b.dataset.t));
+$("again").onclick=()=>{buildForm(null);setView("s")};
+applyLang(false);
+(async()=>{try{db=await claude.use("db");if(db)db.collection("responses").onSnapshot(s=>{rows=s.docs.map(d=>d.data());if(view==="r")draw()},()=>{})}catch(e){}})();
+</script></body></html>
